@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "phase-*"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: safenestt
+          POSTGRES_PASSWORD: safenestt
+          POSTGRES_DB: safenestt
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U safenestt -d safenestt"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -e ".[test]"
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql+psycopg://safenestt:safenestt@localhost:5432/safenestt
+        run: alembic upgrade head
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql+psycopg://safenestt:safenestt@localhost:5432/safenestt
+        run: pytest -q
