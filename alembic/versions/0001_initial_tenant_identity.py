@@ -12,6 +12,7 @@ depends_on = None
 
 
 def upgrade() -> None:
+    """Create the initial tenant, user, and membership tables."""
     op.create_table(
         "tenants",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -51,6 +52,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Remove the initial tenant and identity tables."""
     op.drop_table("memberships")
     op.drop_table("users")
     op.drop_table("tenants")
